@@ -3,15 +3,17 @@
 /* eslint-disable react/button-has-type */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { FaCalendarTimes } from 'react-icons/fa';
-import { FaPersonBooth } from 'react-icons/fa';
+import { FiUser } from 'react-icons/fi';
+import { FiCalendar } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
 import Link from 'next/link';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
 import { GetStaticProps } from 'next';
 import { Head } from 'next/document';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -37,7 +39,6 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
-  // const [posts, setPosts] = useState<PostPagination>(postsPagination);
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
@@ -51,10 +52,8 @@ export default function Home({ postsPagination }: HomeProps) {
   };
 
   const dateFormat = post => {
-    return new Date(post).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
+    return format(new Date(post), 'dd MMM yyyy', {
+      locale: ptBR,
     });
   };
 
@@ -73,11 +72,11 @@ export default function Home({ postsPagination }: HomeProps) {
                 <p>{post.data.subtitle}</p>
                 <div className={styles.info}>
                   <time>
-                    <FaCalendarTimes />
+                    <FiCalendar />
                     {dateFormat(post.first_publication_date)}
                   </time>
                   <span>
-                    <FaPersonBooth /> {post.data.author}
+                    <FiUser /> {post.data.author}
                   </span>
                 </div>
               </a>
@@ -104,7 +103,7 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'post')],
     {
       fetch: ['post.title', 'post.subtitle', 'post.author'],
-      pageSize: 1,
+      pageSize: 20,
       page: 1,
       orderings: '[post.first_publication_date desc]',
     }

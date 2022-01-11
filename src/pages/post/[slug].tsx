@@ -4,10 +4,13 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import Prismic from '@prismicio/client';
 
-import { FaPersonBooth } from 'react-icons/fa';
-import { FaCalendarTimes } from 'react-icons/fa';
-import { FaClock } from 'react-icons/fa';
+import { FiUser } from 'react-icons/fi';
+import { FiCalendar } from 'react-icons/fi';
+import { FiClock } from 'react-icons/fi';
 import { RichText } from 'prismic-dom';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+import { useRouter } from 'next/router';
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
@@ -34,7 +37,27 @@ interface PostProps {
   post: Post;
 }
 
+const dateFormat = post => {
+  return format(new Date(post), 'dd MMM yyyy', {
+    locale: ptBR,
+  });
+};
+
+const readingTime = content => {
+  const text = content;
+  const wpm = 225;
+  const words = text.trim().split(/\s+/).length;
+  const time = Math.ceil(words / wpm);
+  return time;
+};
+
 export default function Post({ post }: PostProps) {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <div>Carregando...</div>;
+  }
+
   return (
     <>
       {/* <Head>
@@ -47,21 +70,25 @@ export default function Post({ post }: PostProps) {
           <h1>{post.data.title}</h1>
           <div className={styles.info}>
             <time>
-              <FaCalendarTimes />
-              {post.first_publication_date}
+              <FiCalendar />
+              {dateFormat(post.first_publication_date)}
             </time>
             <span>
-              <FaPersonBooth /> {post.data.author}
+              <FiUser /> {post.data.author}
             </span>
             <span>
-              <FaClock /> 4 min
+              <FiClock />
+              {readingTime('iokjgkosdfgjnf')}
+              min
             </span>
           </div>
 
           {post.data.content.map(contents => (
             <div className={styles.content} key={contents.heading}>
               <h2>{contents.heading}</h2>
-              <span>{RichText.asText(contents.body)}</span>
+              <span>
+                {contents.body.map(bodies => RichText.asText(bodies.text))}
+              </span>
             </div>
           ))}
         </div>
@@ -75,21 +102,15 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const posts = await prismic.query(
     [Prismic.predicates.at('document.type', 'post')],
     {
-      fetch: ['post.title', 'post.subtitle', 'post.author'],
+      fetch: ['post.title', 'post.author'],
     }
   );
 
-  // Get the paths we want to pre-render based on posts
   const paths = posts.results.map(post => ({
     params: { slug: post.uid },
   }));
 
-  // We'll pre-render only these paths at build time.
-  // { fallback: blocking } will server-render pages
-  // on-demand if the path doesn't exist.
   return { paths, fallback: true };
-
-  // TODO
 };
 
 export const getStaticProps: GetStaticProps = async context => {
@@ -100,6 +121,7 @@ export const getStaticProps: GetStaticProps = async context => {
     String(context.params.slug),
     {}
   );
+
   const post = {
     first_publication_date: response.first_publication_date,
     data: {
@@ -108,9 +130,19 @@ export const getStaticProps: GetStaticProps = async context => {
         url: response.data.banner.url,
       },
       author: response.data.author,
-      content: response.data.content,
+      content: [
+        {
+          heading: response.data.content.map(contents => contents.heading),
+          body: [
+            {
+              text: response.data.content.map(bodies => bodies.body),
+            },
+          ],
+        },
+      ],
     },
   };
+  console.log(post);
 
-  return { props: { post } };
+  return { props: { post }, redirect: 60 * 30 };
 };
