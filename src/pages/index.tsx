@@ -1,8 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable no-param-reassign */
-/* eslint-disable react/button-has-type */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { FiUser } from 'react-icons/fi';
 import { FiCalendar } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
@@ -11,7 +6,7 @@ import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
 import { GetStaticProps } from 'next';
-import { Head } from 'next/document';
+import Head from 'next/head';
 
 import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
@@ -38,11 +33,17 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
+const dateFormat = (post): string => {
+  return format(new Date(post), 'dd MMM yyyy', {
+    locale: ptBR,
+  });
+};
+
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
-  const fetchMorePosts = next_page => {
+  const fetchMorePosts = (next_page): void => {
     fetch(next_page)
       .then(response => response.json())
       .then(data => {
@@ -51,44 +52,39 @@ export default function Home({ postsPagination }: HomeProps) {
       });
   };
 
-  const dateFormat = post => {
-    return format(new Date(post), 'dd MMM yyyy', {
-      locale: ptBR,
-    });
-  };
-
   return (
     <>
-      {/* <Head>
-        <title>Posts | Blog</title>
-      </Head> */}
-
+      <Head>
+        <title>Home | SpaceTraveling</title>
+      </Head>
       <main className={styles.container}>
-        <div className={styles.postList}>
-          {posts.map(post => (
-            <Link key={post.uid} href={`/post/${post.uid}`}>
-              <a>
-                <h1>{post.data.title}</h1>
-                <p>{post.data.subtitle}</p>
-                <div className={styles.info}>
-                  <time>
-                    <FiCalendar />
-                    {dateFormat(post.first_publication_date)}
-                  </time>
-                  <span>
-                    <FiUser /> {post.data.author}
-                  </span>
+        {posts.map(post => (
+          <Link key={post.uid} href={`/post/${post.uid}`}>
+            <a className={styles.post}>
+              <h1>{post.data.title}</h1>
+              <h2>{post.data.subtitle}</h2>
+              <div className={commonStyles.postInfo}>
+                <div className={commonStyles.postPublicationDate}>
+                  <FiCalendar />
+                  <time>{dateFormat(post.first_publication_date)}</time>
                 </div>
-              </a>
-            </Link>
-          ))}
-        </div>
+                <div className={commonStyles.postAuthor}>
+                  <FiUser />
+                  <span>{post.data.author}</span>
+                </div>
+              </div>
+            </a>
+          </Link>
+        ))}
+
         {nextPage ? (
-          <div className={styles.morePosts}>
-            <button onClick={() => fetchMorePosts(nextPage)}>
-              Carregar mais posts
-            </button>
-          </div>
+          <button
+            type="button"
+            className={styles.loadMorePostsButton}
+            onClick={() => fetchMorePosts(nextPage)}
+          >
+            Carregar mais posts
+          </button>
         ) : (
           ''
         )}

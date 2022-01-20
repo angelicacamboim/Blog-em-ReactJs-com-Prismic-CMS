@@ -1,51 +1,33 @@
-.container{
+.container {
     max-width: 1120px;
     margin: 0 auto;
-    padding: 0 2rem;
-
-    .morePosts{
-        margin-top: 3rem;
-        color: #FF57B2;
+  }
+  
+  .post {
+    display: block;
+    margin-bottom: 3.2rem;
+  
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      transition: color 0.2s;
     }
-}
-
-.postList{
-    max-width: 1120px;
-    margin: 5rem auto 0;
-
-    a {
-        display: block;
-
-        & + a {
-            margin-top: 2rem;
-            padding-top: 2rem;
-        }
-
-
-        .info {
-            max-width: 1120px;
-            display: block;
-            align-items: flex-start;
-            margin-top: 1rem;
-
-            time {
-                font-size: 0.8rem;
-                margin-right: 1rem;
-                color:(--gray-300);
-            }
-            
-            span {
-                font-size: 0.8rem;
-                color:(--gray-300);
-            }
-        }
-        
-        p {
-            color: var(--gray-300);
-            margin-top: 0.5rem;
-            line-height: 1.625rem;
-        }
-
-        
+  
+    h2 {
+      font-size: 1.2rem;
+      color: var(--gray-150);
+      font-weight: 400;
+      margin-bottom: 1.6rem;
     }
-}
+  
+    &:hover h1 {
+      color: var(--pink-100);
+    }
+  }
+  
+  .loadMorePostsButton {
+    color: var(--pink-100);
+    font-weight: 600;
+    background: transparent;
+    border: none;
+  }
